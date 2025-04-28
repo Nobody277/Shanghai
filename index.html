@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Shanghai</title>
+
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+
+        <script>
+            (function () {
+                try {
+                    const savedTheme = localStorage.getItem("theme");
+                    const htmlElement = document.documentElement;
+
+                    if (savedTheme === "dark") {
+                        htmlElement.classList.add("dark");
+                        htmlElement.classList.remove("light");
+                    } else {
+                        htmlElement.classList.add("light");
+                        htmlElement.classList.remove("dark");
+                    }
+                } catch (e) {
+                    console.error("Error applying initial theme:", e);
+                    document.documentElement.classList.add("light");
+                }
+            })();
+        </script>
+
+        <link rel="stylesheet" href="css/styles.css" />
+    </head>
+    <body class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <button id="theme-toggle" title="Toggle theme" class="absolute top-4 right-4 z-20">
+            <svg class="sun-icon w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+
+        <div class="menu-container" id="menu-container">
+            <h1 class="game-title">Shanghai</h1>
+            <div class="player-select">
+                <label for="player-options" class="block mb-4 text-lg font-medium">Number of Players</label>
+                <div class="player-options" id="player-options"></div>
+            </div>
+            <button class="btn start-btn mt-8" id="start-game-btn" disabled>Start Game</button>
+        </div>
+
+        <div id="game-area" class="hidden w-full flex flex-col flex-grow">
+            <div class="info-container absolute top-4 left-4 z-10" id="info-container">
+                <button id="info-toggle" title="Toggle Game Info" class="p-2 rounded-full">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </button>
+                <div id="info-panel" class="absolute left-0 top-full mt-2">
+                    <h3 class="text-lg font-semibold mb-2">Game Stats</h3>
+                    <ul class="text-sm space-y-1">
+                        <li><span class="font-medium">Round:</span> <span id="stat-round">1</span></li>
+                        <li><span class="font-medium">Score:</span> <span id="stat-score">0</span></li>
+                        <li><span class="font-medium">Cards in Deck:</span> <span id="stat-deck-count">?</span></li>
+                        <li><span class="font-medium">Current Player:</span> <span id="stat-current-player">You</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="opponents-area flex justify-center py-2 w-full" id="opponents-area"></div>
+
+            <div class="flex flex-col items-center justify-center w-full relative my-4 flex-grow">
+                <div class="center-area flex gap-4 items-center justify-center" id="center-area">
+                    <div class="deck-pile relative cursor-pointer" title="Draw Deck">
+                        <div class="deck-card"></div>
+                    </div>
+                    <div class="discard-pile" title="Discard Pile">
+                        <div class="discard-pile-placeholder"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full mt-auto flex flex-col items-center pb-4" id="player-area">
+                <div class="w-full flex justify-center px-2">
+                    <div class="player-hand inline-flex gap-2 p-2 rounded-lg min-h-[110px] flex-wrap justify-center max-w-full" id="player-hand">
+                        <div class="card-placeholder"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/script.js" defer></script>
+    </body>
+</html>
