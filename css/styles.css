@@ -178,11 +178,53 @@ body {
     font-weight: bold;
     position: relative;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease-out, box-shadow 0.2s ease-out, opacity 0.3s ease;
     flex-shrink: 0;
     margin: 2px;
     user-select: none;
     cursor: default;
+}
+
+.card-draw-animation {
+    position: absolute;
+    z-index: 100;
+    pointer-events: none;
+    animation: drawToHandAnimation 1.2s ease-out forwards;
+}
+
+@keyframes drawToHandAnimation {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1) rotate(-5deg) translateY(-50px);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translateX(450px) translateY(360px) scale(0.9) rotate(10deg);
+        opacity: 0;
+    }
+}
+
+.card-pop-in {
+    animation: popIn 0.3s ease-out forwards;
+    transform-origin: center center;
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(-15deg);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.1) rotate(5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
 }
 
 .light .card {

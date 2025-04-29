@@ -15,6 +15,7 @@ const playerArea = document.getElementById("player-area");
 const playerHandElement = document.getElementById("player-hand");
 const deckPileElement = document.getElementById("deck-pile");
 const discardPileElement = document.getElementById("discard-pile");
+const cardPopSound = document.getElementById("card-pop-sound");
 
 const roundEl = document.getElementById("stat-round");
 const scoreEl = document.getElementById("stat-score");
@@ -207,13 +208,28 @@ function displayPlayerHand(hand) {
         return;
     }
 
-    hand.forEach(cardData => {
+    const lastCardIndex = hand.length - 1;
+
+    hand.forEach((cardData, index) => {
         const cardElement = createCardElement(cardData);
         if (turnPhase === 'discard') {
             cardElement.classList.add('discardable');
             cardElement.addEventListener('click', handleDiscardCard);
         } else {
             cardElement.classList.remove('discardable');
+        }
+        if (index === lastCardIndex && currentPlayerIndex === 0 && turnPhase === 'discard') {
+            cardElement.classList.add('card-pop-in');
+
+            if (cardPopSound && cardPopSound.src && cardPopSound.src !== window.location.href) {
+                cardPopSound.volume = 0.4;
+                cardPopSound.currentTime = 0;
+                cardPopSound.play().catch(error => console.error("Audio play failed:", error));
+            }
+
+            cardElement.addEventListener('animationend', () => {
+                cardElement.classList.remove('card-pop-in');
+            }, { once: true });
         }
         playerHandElement.appendChild(cardElement);
     });
@@ -277,19 +293,35 @@ function addGameEventListeners() {
 }
 
 function handleDrawFromDeck() {
-    if (turnPhase !== 'draw' || currentPlayerIndex !== 0) return;
-    if (deck.length === 0) {
-        alert("Deck is empty!");
-        return;
-    }
+    if (turnPhase !== 'draw' || currentPlayerIndex !== 0 || deck.length === 0) return;
 
-    const drawnCard = deck.shift();
-    playerHand.push(drawnCard);
-    turnPhase = 'discard';
+    if (document.querySelector('.card-draw-animation')) return;
 
-    console.log("Drew from deck:", drawnCard);
+    const drawnCardData = deck.shift();
+    const tempCardElement = createCardElement(drawnCardData);
+    const deckRect = deckPileElement.getBoundingClientRect();
+    const relativeParent = gameArea.offsetParent || document.body;
+    const parentRect = relativeParent.getBoundingClientRect();
+    const startTop = deckRect.top - parentRect.top;
+    const startLeft = deckRect.left - parentRect.left;
 
-    updateGameAfterAction();
+    tempCardElement.style.position = 'absolute';
+    tempCardElement.style.top = `${startTop}px`;
+    tempCardElement.style.left = `${startLeft}px`;
+    relativeParent.appendChild(tempCardElement);
+
+    requestAnimationFrame(() => {
+        tempCardElement.classList.add('card-draw-animation');
+    });
+
+    tempCardElement.addEventListener('animationend', () => {
+        tempCardElement.remove();
+        playerHand.push(drawnCardData);
+        turnPhase = 'discard';
+        updateGameAfterAction();
+    }, { once: true });
+
+    updateStats();
 }
 
 function handleDrawFromDiscard() {
