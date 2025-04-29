@@ -13,6 +13,8 @@ const opponentsArea = document.getElementById("opponents-area");
 const centerArea = document.getElementById("center-area");
 const playerArea = document.getElementById("player-area");
 const playerHandElement = document.getElementById("player-hand");
+const deckPileElement = document.getElementById("deck-pile");
+const discardPileElement = document.getElementById("discard-pile");
 
 const roundEl = document.getElementById("stat-round");
 const scoreEl = document.getElementById("stat-score");
@@ -30,12 +32,18 @@ const suitSymbols = {
     heart: "♥",
     diamond: "♦",
     club: "♣",
-    spade: "♠"
+    spade: "♠",
+    joker: '🃏'
 };
 
 let deck = [];
 let playerHand = [];
 let discardPile = [];
+let opponents = [];
+let currentPlayerIndex = 0;
+let currentRound = 1;
+let playerScore = 0;
+let turnPhase = 'waiting';
 
 function toggleTheme() {
     if (isThemeAnimating || !themeToggle) return;
@@ -120,11 +128,9 @@ function handleStartGame() {
         if (menuContainer) {
             menuContainer.classList.add("hidden");
         }
-
         if (gameArea) {
             gameArea.classList.remove("hidden");
         }
-
         initializeGame(selectedPlayerCount);
     } else {
         alert("Please select the number of players first.");
@@ -136,16 +142,17 @@ function createDeck(numDecks = 2, numJokers = 4) {
     for (let d = 0; d < numDecks; d++) {
         for (const suit of suits) {
             for (const rank of ranks) {
-                newDeck.push({ suit, rank });
+                newDeck.push({ id: `card-${suit}-${rank}-${d}`, suit, rank });
             }
         }
     }
     for (let j = 0; j < numJokers; j++) {
-        newDeck.push({ suit: "joker", rank: "Joker", isJoker: true });
+        newDeck.push({ id: `card-joker-${j}`, suit: "joker", rank: "Joker", isJoker: true });
     }
     return newDeck;
 }
 
+// Fisher–Yates shuffle algorithm
 function shuffleDeck(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -155,8 +162,9 @@ function shuffleDeck(array) {
 
 function dealCards(numCards) {
     if (deck.length < numCards) {
-        console.error("Not enough cards in deck to deal!");
-        return [];
+        console.warn("Not enough cards in deck, reshuffling discard pile.");
+        // Reshuffle logic would go here if needed
+        if(deck.length === 0) return [];
     }
     return deck.splice(0, numCards);
 }
@@ -164,12 +172,13 @@ function dealCards(numCards) {
 function createCardElement(cardData) {
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card");
+    cardDiv.dataset.cardId = cardData.id;
 
     if (cardData.isJoker) {
         cardDiv.classList.add("joker");
         cardDiv.innerHTML = `
             <span class="rank" style="font-size: 12px; text-align: center; margin-top: 5px;">JOKER</span>
-            <span class="suit" style="font-size: 30px; text-align: center;">🃏</span>
+            <span class="suit" style="font-size: 30px; text-align: center;">${suitSymbols.joker}</span>
             <span class="rank" style="font-size: 12px; text-align: center; transform: rotate(180deg); margin-bottom: 5px;">JOKER</span>`;
     } else {
         cardDiv.classList.add(cardData.suit);
@@ -182,64 +191,221 @@ function createCardElement(cardData) {
     }
     cardDiv.dataset.rank = cardData.rank;
     cardDiv.dataset.suit = cardData.suit;
+    if (cardData.isJoker) {
+        cardDiv.dataset.isJoker = "true";
+    }
 
     return cardDiv;
 }
 
 function displayPlayerHand(hand) {
     if (!playerHandElement) return;
-
     playerHandElement.innerHTML = "";
+
     if (hand.length === 0) {
-         playerHandElement.innerHTML = '<div class="text-xs italic opacity-75 p-4">Hand is empty</div>';
+        playerHandElement.innerHTML = '<div class="text-xs italic opacity-75 p-4">Hand is empty</div>';
+        return;
+    }
+
+    hand.forEach(cardData => {
+        const cardElement = createCardElement(cardData);
+        if (turnPhase === 'discard') {
+            cardElement.classList.add('discardable');
+            cardElement.addEventListener('click', handleDiscardCard);
+        } else {
+            cardElement.classList.remove('discardable');
+        }
+        playerHandElement.appendChild(cardElement);
+    });
+}
+
+function displayDiscardPile() {
+    if (!discardPileElement) return;
+    discardPileElement.innerHTML = "";
+
+    if (discardPile.length > 0) {
+        const topCardData = discardPile[discardPile.length - 1];
+        const cardElement = createCardElement(topCardData);
+        cardElement.classList.add('top-discard');
+        if (turnPhase === 'draw') {
+            cardElement.addEventListener('click', handleDrawFromDiscard);
+            cardElement.style.cursor = 'pointer';
+        } else {
+            cardElement.style.cursor = 'default';
+        }
+        discardPileElement.appendChild(cardElement);
     } else {
-        hand.forEach(cardData => {
-            const cardElement = createCardElement(cardData);
-            playerHandElement.appendChild(cardElement);
-        });
+        discardPileElement.innerHTML = '<div class="discard-pile-placeholder"></div>';
     }
 }
 
 function initializeGame(playerCount) {
-    setupOpponentsUI(playerCount - 1);
-
     deck = createDeck(2, 4);
     shuffleDeck(deck);
+
+    setupOpponentsUI(playerCount - 1);
 
     const initialCardCount = 11;
     playerHand = dealCards(initialCardCount);
 
-    let opponentCardCounts = [];
-    for (let i = 0; i < playerCount - 1; i++) {
-        dealCards(initialCardCount);
-        opponentCardCounts.push(initialCardCount);
-    }
-    setOpponentCardCounts(initialCardCount);
-
-    displayPlayerHand(playerHand);
-
-    updateStats({
-        round: 1,
-        score: 0,
-        deckCount: deck.length,
-        currentPlayer: "You",
+    opponents.forEach(opponent => {
+        opponent.hand = dealCards(initialCardCount);
     });
+
+    discardPile = [];
+
+    currentPlayerIndex = 0;
+    turnPhase = 'draw';
+
+    addGameEventListeners();
+    displayPlayerHand(playerHand);
+    displayDiscardPile();
+    setOpponentCardCounts();
+    updateStats();
+}
+
+function addGameEventListeners() {
+   if (deckPileElement) {
+       deckPileElement.removeEventListener('click', handleDrawFromDeck);
+        if (turnPhase === 'draw') {
+           deckPileElement.addEventListener('click', handleDrawFromDeck);
+           deckPileElement.style.cursor = 'pointer';
+        } else {
+            deckPileElement.style.cursor = 'default';
+        }
+   }
+}
+
+function handleDrawFromDeck() {
+    if (turnPhase !== 'draw' || currentPlayerIndex !== 0) return;
+    if (deck.length === 0) {
+        alert("Deck is empty!");
+        return;
+    }
+
+    const drawnCard = deck.shift();
+    playerHand.push(drawnCard);
+    turnPhase = 'discard';
+
+    console.log("Drew from deck:", drawnCard);
+
+    updateGameAfterAction();
+}
+
+function handleDrawFromDiscard() {
+    if (turnPhase !== 'draw' || currentPlayerIndex !== 0 || discardPile.length === 0) return;
+
+    const drawnCard = discardPile.pop();
+    playerHand.push(drawnCard);
+    turnPhase = 'discard';
+
+    console.log("Drew from discard:", drawnCard);
+
+    updateGameAfterAction();
+}
+
+function handleDiscardCard(event) {
+    if (turnPhase !== 'discard' || currentPlayerIndex !== 0) return;
+
+    const cardElement = event.currentTarget;
+    const cardIdToDiscard = cardElement.dataset.cardId;
+
+    const cardIndex = playerHand.findIndex(card => card.id === cardIdToDiscard);
+
+    if (cardIndex === -1) {
+        console.error("Card not found in hand:", cardIdToDiscard);
+        return;
+    }
+
+    const discardedCard = playerHand.splice(cardIndex, 1)[0];
+    discardPile.push(discardedCard);
+
+    console.log("Discarded:", discardedCard);
+
+    endTurn();
+}
+
+function updateGameAfterAction() {
+    displayPlayerHand(playerHand);
+    displayDiscardPile();
+    addGameEventListeners();
+    updateStats();
+}
+
+function endTurn() {
+    turnPhase = 'waiting';
+    updateGameAfterAction();
+
+    currentPlayerIndex = (currentPlayerIndex + 1) % selectedPlayerCount;
+    updateStats();
+
+    if (currentPlayerIndex === 0) {
+        startPlayerTurn();
+    } else {
+        setTimeout(simulateOpponentTurn, 1000);
+    }
+}
+
+function startPlayerTurn() {
+    console.log("Your turn!");
+    turnPhase = 'draw';
+    updateGameAfterAction();
+}
+
+function simulateOpponentTurn() {
+    if (currentPlayerIndex === 0) return;
+
+    // Very basic AI: draw from deck, discard randomly
+    const opponent = opponents[currentPlayerIndex - 1];
+
+    if (deck.length > 0) {
+        const drawnCard = deck.shift();
+        opponent.hand.push(drawnCard);
+        console.log(`Opponent ${currentPlayerIndex} drew from deck`);
+    } else {
+        if (discardPile.length > 0) {
+            const drawnCard = discardPile.pop();
+            opponent.hand.push(drawnCard);
+            console.log(`Opponent ${currentPlayerIndex} drew from discard`);
+        } else {
+            console.log(`Opponent ${currentPlayerIndex} cannot draw, deck and discard empty!`);
+            endTurn();
+            return;
+        }
+    }
+
+    // Discard phase (randomly discard)
+    if (opponent.hand.length > 0) {
+        const discardIndex = Math.floor(Math.random() * opponent.hand.length);
+        const discardedCard = opponent.hand.splice(discardIndex, 1)[0];
+        discardPile.push(discardedCard);
+        console.log(`Opponent ${currentPlayerIndex} discarded`);
+    }
+
+    setOpponentCardCounts();
+    displayDiscardPile();
+    updateStats();
+
+    endTurn();
 }
 
 function setupOpponentsUI(opponentCount) {
     if (!opponentsArea) return;
     opponentsArea.innerHTML = "";
+    opponents = [];
 
     for (let i = 0; i < opponentCount; i++) {
+        opponents.push({ id: i + 1, hand: [], score: 0 });
         const opponentDiv = document.createElement("div");
         opponentDiv.classList.add("opponent");
+        opponentDiv.dataset.opponentId = i + 1;
         opponentDiv.innerHTML = `
             <div class="fan-icon">
-                 <div class="fan-card"></div>
-                 <div class="fan-card"></div>
-                 <div class="fan-card"></div>
-                 <div class="fan-card"></div>
-                 <div class="fan-card"></div>
+                <div class="fan-card"></div>
+                <div class="fan-card"></div>
+                <div class="fan-card"></div>
+                <div class="fan-card"></div>
+                <div class="fan-card"></div>
             </div>
             <div class="card-count">?</div>
         `;
@@ -247,21 +413,31 @@ function setupOpponentsUI(opponentCount) {
     }
 }
 
-function setOpponentCardCounts(count) {
+function setOpponentCardCounts() {
     if (!opponentsArea) return;
-    const opponentCounters =
-        opponentsArea.querySelectorAll(".opponent .card-count");
-    opponentCounters.forEach((counter) => {
-        counter.textContent = count;
+    opponents.forEach(opponent => {
+        const opponentDiv = opponentsArea.querySelector(`.opponent[data-opponent-id="${opponent.id}"]`);
+        if (opponentDiv) {
+            const counter = opponentDiv.querySelector('.card-count');
+            if(counter) counter.textContent = opponent.hand.length;
+        }
     });
 }
 
-function updateStats(stats = {}) {
-    if (roundEl) roundEl.textContent = stats.round ?? "?";
-    if (scoreEl) scoreEl.textContent = stats.score ?? "0";
-    if (deckCountEl) deckCountEl.textContent = stats.deckCount ?? "?";
-    if (currentPlayerEl)
-        currentPlayerEl.textContent = stats.currentPlayer ?? "?";
+function updateStats() {
+    if (roundEl) roundEl.textContent = currentRound;
+    if (scoreEl) scoreEl.textContent = playerScore;
+    if (deckCountEl) deckCountEl.textContent = deck.length;
+    if (currentPlayerEl) {
+        currentPlayerEl.textContent = (currentPlayerIndex === 0) ? "Your Turn" : `Opponent ${currentPlayerIndex}'s Turn`;
+    }
+
+    document.body.classList.remove('phase-draw', 'phase-discard', 'phase-waiting');
+    if (currentPlayerIndex === 0) {
+        document.body.classList.add(`phase-${turnPhase}`);
+    } else {
+        document.body.classList.add('phase-waiting');
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
