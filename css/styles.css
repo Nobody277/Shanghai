@@ -88,8 +88,7 @@ body {
     font-size: 1.1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease,
-        border-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     border-width: 1px;
     border-style: solid;
@@ -183,48 +182,6 @@ body {
     margin: 2px;
     user-select: none;
     cursor: default;
-}
-
-.card-draw-animation {
-    position: absolute;
-    z-index: 100;
-    pointer-events: none;
-    animation: drawToHandAnimation 1.2s ease-out forwards;
-}
-
-@keyframes drawToHandAnimation {
-    0% {
-        transform: scale(1) rotate(0deg);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.1) rotate(-5deg) translateY(-50px);
-        opacity: 0.9;
-    }
-    100% {
-        transform: translateX(450px) translateY(360px) scale(0.9) rotate(10deg);
-        opacity: 0;
-    }
-}
-
-.card-pop-in {
-    animation: popIn 0.3s ease-out forwards;
-    transform-origin: center center;
-}
-
-@keyframes popIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.5) rotate(-15deg);
-    }
-    60% {
-        opacity: 1;
-        transform: scale(1.1) rotate(5deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) rotate(0deg);
-    }
 }
 
 .light .card {
@@ -619,4 +576,176 @@ body {
 }
 
 #player-area {
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .opponents-area {
+        gap: 40px;
+    }
+
+    .card {
+        width: 60px;
+        height: 85px;
+        font-size: 14px;
+    }
+    .card .suit {
+        font-size: 16px;
+    }
+    .card .center-suit {
+        font-size: 25px;
+    }
+
+    .player-hand {
+        padding: 6px;
+        gap: 3px;
+        min-height: 95px;
+    }
+
+    .center-area {
+        gap: 10px;
+    }
+
+    .deck-card, .discard-pile-placeholder, .discard-pile .card {
+        width: 60px;
+        height: 85px;
+    }
+    .light .deck-card, .dark .deck-card {
+        background-size: 25px 25px;
+    }
+
+    #info-panel {
+        width: 200px;
+        padding: 12px;
+    }
+    #info-panel h3 {
+        font-size: 1rem;
+    }
+    #info-panel ul {
+        font-size: 0.8rem;
+    }
+
+    @keyframes drawToHandAnimation {
+        0% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1) rotate(-5deg) translateY(-40px);
+            opacity: 0.9;
+        }
+        100% {
+            transform: translateX(250px) translateY(250px) scale(0.9) rotate(10deg);
+            opacity: 0;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .game-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .menu-container {
+        padding: 1.5rem;
+        max-width: 95%;
+    }
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+    }
+    .player-btn {
+        min-width: 40px;
+        padding: 0.6rem 0.8rem;
+    }
+    .start-btn {
+        padding: 0.8rem 1rem;
+        font-size: 1.1rem;
+    }
+
+    .opponents-area {
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .opponent {
+        gap: 4px;
+    }
+    .fan-icon {
+        width: 55px;
+        height: 40px;
+    }
+    .fan-card {
+        width: 20px;
+        height: 32px;
+    }
+    .card-count {
+        font-size: 12px;
+        padding: 3px 8px;
+        min-width: 30px;
+    }
+    .opponent .opponent-name {
+        font-size: 0.7rem;
+    }
+
+    .card {
+        width: 50px;
+        height: 70px;
+        font-size: 12px;
+    }
+    .card .rank {
+        font-size: 12px;
+    }
+    .card .suit {
+        font-size: 14px;
+    }
+    .card .center-suit {
+        font-size: 20px;
+    }
+
+    .player-hand {
+        padding: 4px;
+        gap: 2px;
+        min-height: 80px;
+    }
+
+    .deck-card, .discard-pile-placeholder, .discard-pile .card {
+        width: 50px;
+        height: 70px;
+    }
+    .light .deck-card, .dark .deck-card {
+        background-size: 20px 20px;
+    }
+
+    #theme-toggle {
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+    #info-toggle {
+        top: 0.5rem;
+        left: 0.5rem;
+    }
+    #info-panel {
+        width: 180px;
+        left: -5px;
+    }
+
+    @keyframes drawToHandAnimation {
+        0% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1) rotate(-5deg) translateY(-30px);
+            opacity: 0.9;
+        }
+        100% {
+            transform: translateX(150px) translateY(180px) scale(0.9) rotate(10deg);
+            opacity: 0;
+        }
+    }
 }

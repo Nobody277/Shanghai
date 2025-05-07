@@ -35,7 +35,7 @@
         <link rel="stylesheet" href="css/styles.css" />
     </head>
     <body class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        <button id="theme-toggle" title="Toggle theme" class="absolute top-4 right-4 z-20">
+        <button id="theme-toggle" class="absolute top-4 right-4 z-20">
             <svg class="sun-icon w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5"></circle>
                 <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -63,7 +63,7 @@
 
         <div id="game-area" class="hidden w-full flex flex-col flex-grow">
             <div class="info-container absolute top-4 left-4 z-10" id="info-container">
-                <button id="info-toggle" title="Toggle Game Info" class="p-2 rounded-full">
+                <button id="info-toggle" class="p-2 rounded-full">
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -85,10 +85,10 @@
 
             <div class="flex flex-col items-center justify-center w-full relative my-4 flex-grow">
                 <div class="center-area flex gap-4 items-center justify-center" id="center-area">
-                    <div id="deck-pile" class="deck-pile relative cursor-pointer" title="Draw Deck">
+                    <div id="deck-pile" class="deck-pile relative cursor-pointer">
                         <div class="deck-card"></div>
-                        </div>
-                    <div id="discard-pile" class="discard-pile" title="Discard Pile">
+                    </div>
+                    <div id="discard-pile" class="discard-pile">
                         <div class="discard-pile-placeholder"></div>
                     </div>
                 </div>
@@ -103,6 +103,6 @@
             </div>
         </div>
         </div> <audio id="card-pop-sound" src="sounds/pop-sound.mp3" preload="auto"></audio>
-        <script src="js/script.js" defer></script>
+        <script type="module" src="js/main.js"></script>
     </body>
 </html>
